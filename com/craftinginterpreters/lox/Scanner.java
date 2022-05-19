@@ -30,9 +30,9 @@ public class Scanner {
       scanToken();
     }
 
-    this.tokens.add(new Token(TokenType.EOF, "", null, line));
+    tokens.add(new Token(TokenType.EOF, "", null, line));
 
-    return this.tokens;
+    return tokens;
   }
 
   public void scanToken() {
@@ -69,13 +69,35 @@ public class Scanner {
       case ';': 
         addToken(TokenType.SEMICOLON);
         break;
+      case '!':
+        addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
+        break;
+      case '=':
+        addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+        break;
+      case '<':
+        addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+        break;
+      case '>':
+        addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+        break;
+      case '/':
+        // if the next character is a slash, then ignore everything until you hit a \n
+        if (match('/')) {
+          while (peek() != '\n' && !isAtEnd()) {
+            advance();
+          }
+        } else {
+          addToken(TokenType.SLASH);
+        }
+        break;
       default:
-        Lox.error(this.line, "Encountered unexpected character: " + c);
+        Lox.error(line, "Encountered unexpected character: " + c);
     }
   }
 
 /**
- * Since `this.current` is just an index
+ * Since `current` is just an index
  * we can determine whether the current index
  * has reached the number of characters
  * in the source file.
@@ -84,7 +106,7 @@ public class Scanner {
  * whether we've reached the end of the source file
  */
   public Boolean isAtEnd() {
-    return this.current >= source.length();
+    return current >= source.length();
   }
 
 /**
@@ -93,9 +115,9 @@ public class Scanner {
  * @return char at current position
  */
   public char advance() {
-    char currentChar = this.source.charAt(this.current);
+    char currentChar = source.charAt(current);
 
-    this.current++;
+    current++;
 
     return currentChar;
   }
@@ -106,7 +128,7 @@ public class Scanner {
  * @param type The type of the token being added
  */
   private void addToken(TokenType type) {
-    this.addToken(type, null);
+    addToken(type, null);
   }
 
 /**
@@ -116,8 +138,42 @@ public class Scanner {
  * @param literal The literal value of the token
  */
   private void addToken(TokenType type, Object literal) {
-    String text = this.source.substring(start, current);
-    this.tokens.add(new Token(type, text, literal, line));
+    String text = source.substring(start, current);
+    tokens.add(new Token(type, text, literal, line));
   }
 
+/**
+ * Match returns true if the current character
+ * matches the query and false otherwise.
+ * 
+ * `current` is incremented only if the
+ * current character is a match.
+ * @param expected
+ * @return
+ */
+  private Boolean match(char expected) {
+    if (isAtEnd()) {
+      return false;
+    }
+
+    if (source.charAt(current) != expected) {
+      return false;
+    }
+
+    current++;
+
+    return true;
+  }
+
+/**
+ * Peek returns the current character
+ * but doesn't increment `current`
+ * @return character at current position
+ */
+  private char peek() {
+    if (isAtEnd()) {
+      return '\0';
+    }
+    return source.charAt(current);
+  }
 }
