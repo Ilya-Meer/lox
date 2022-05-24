@@ -105,6 +105,8 @@ public class Scanner {
       default:
         if (isDigit(c)) {
           digit();
+        } else if (isAlpha(c)) {
+          identifier();
         } else {
           Lox.error(line, "Encountered unexpected character: " + c);
         }
@@ -243,5 +245,33 @@ public class Scanner {
 
   private Boolean isDigit(char c) {
     return c >= '0' && c <= '9';
+  }
+
+  private void identifier() {
+    while (isAlphaNumeric(peek()) && !isAtEnd()) {
+      advance();
+    }
+
+    String text = source.substring(start, current);
+
+    TokenType type = Keywords.getKeyword(text);
+
+    // The text is not a keyword
+    // so it must be a user defined identifier
+    if (type == null) {
+      type = TokenType.IDENTIFIER;
+    }
+
+    addToken(type);
+  }
+
+  private Boolean isAlpha(char c) {
+    return (c >= 'a' && c <= 'z') ||
+      (c >= 'A' && c <= 'Z') ||
+      c == '_';
+  }
+
+  private Boolean isAlphaNumeric(char c) {
+    return isAlpha(c) || isDigit(c);
   }
 }
