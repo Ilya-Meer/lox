@@ -25,12 +25,17 @@ class Generate_ast
     file.puts "\n"
     file.puts "abstract class #{base_name} {"
 
+    define_visitor(file, base_name, types)
+
     types.each do |type|
       class_name = type.split(":")[0].strip
       fields = type.split(":")[1].strip
 
       define_type(file, base_name, class_name, fields)
     end
+
+    file.puts "\n"
+    file.puts "  abstract <R> R accept(Visitor<R> visitor);"
 
     file.puts "}"
   end
@@ -42,16 +47,35 @@ class Generate_ast
     field_list.split(", ").each do |field|
       field_name = field.split(" ")[1]
       
-      file.puts "      this.#{field_name}=#{field_name};"
+      file.puts "      this.#{field_name} = #{field_name};"
     end
 
     file.puts "    }"
 
-    fields.each do |field|
+    field_list.split(", ").each do |field|
       file.puts "    final #{field};"
     end
 
+    file.puts "\n"
+    file.puts "    @Override"
+    file.puts "    <R> R accept(Visitor<R> visitor) {"
+
+    file.puts "      return visitor.visit#{class_name}#{base_name}(this);"
+    file.puts "   }"
+
     file.puts "  }\n"
+  end
+
+  def define_visitor(file, base_name, types)
+    file.puts " interface Visitor<R> {"
+
+    types.each do |type|
+      class_name = type.split(":")[0].strip
+      
+      file.puts "   R visit#{class_name}#{base_name}(#{class_name} #{base_name.downcase});"
+    end
+
+    file.puts " }"
   end
 end
 
