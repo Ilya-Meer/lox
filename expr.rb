@@ -34,14 +34,13 @@ class Generate_ast
       define_type(file, base_name, class_name, fields)
     end
 
-    file.puts "\n"
     file.puts "  abstract <R> R accept(Visitor<R> visitor);"
 
     file.puts "}"
   end
 
   def define_type(file, base_name, class_name, field_list)
-    file.puts " static class #{class_name} extends #{base_name} {"
+    file.puts "  static class #{class_name} extends #{base_name} {"
     file.puts "    #{class_name} (#{field_list}) {"
 
     field_list.split(", ").each do |field|
@@ -51,6 +50,7 @@ class Generate_ast
     end
 
     file.puts "    }"
+    file.puts "\n"
 
     field_list.split(", ").each do |field|
       file.puts "    final #{field};"
@@ -61,21 +61,23 @@ class Generate_ast
     file.puts "    <R> R accept(Visitor<R> visitor) {"
 
     file.puts "      return visitor.visit#{class_name}#{base_name}(this);"
-    file.puts "   }"
+    file.puts "    }"
 
-    file.puts "  }\n"
+    file.puts "  }"
+    file.puts "\n"
   end
 
   def define_visitor(file, base_name, types)
-    file.puts " interface Visitor<R> {"
+    file.puts "  interface Visitor<R> {"
 
     types.each do |type|
       class_name = type.split(":")[0].strip
       
-      file.puts "   R visit#{class_name}#{base_name}(#{class_name} #{base_name.downcase});"
+      file.puts "    R visit#{class_name}#{base_name}(#{class_name} #{base_name.downcase});"
     end
 
-    file.puts " }"
+    file.puts "  }"
+    file.puts "\n"
   end
 end
 
@@ -85,5 +87,12 @@ astGen.define_ast("Expr", [
   "Binary   : Expr left, Token operator, Expr right",
   "Grouping : Expr expression",
   "Literal  : Object value",
-  "Unary    : Token operator, Expr right"
+  "Unary    : Token operator, Expr right",
+  "Variable : Token name"
+])
+
+astGen.define_ast("Stmt", [
+  "Expression   : Expr expression",
+  "Print        : Expr expression",
+  "Var          : Token name, Expr initializer"
 ])
